@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AirScope 是一個可記錄 PM2.5、CO2、TVOC 與濕度，產生環境風險判讀、改善建議及趨勢圖的互動式空氣品質巡檢板。">
+  <meta name="theme-color" content="#062d2a">
+  <title>AirScope｜空氣品質巡檢板</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #edf6f1;
+      --bg-accent: #dff0e8;
+      --surface: rgba(255, 255, 255, .88);
+      --surface-solid: #ffffff;
+      --surface-muted: #f3f8f5;
+      --text: #132d2a;
+      --muted: #5a706c;
+      --line: #d5e4de;
+      --brand: #087f6d;
+      --brand-strong: #056254;
+      --brand-soft: #d9f4eb;
+      --blue: #3577bd;
+      --good: #198754;
+      --watch: #c28a00;
+      --warn: #dc6b20;
+      --danger: #c83c4d;
+      --shadow: 0 18px 50px rgba(29, 72, 62, .11);
+      --radius: 24px;
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #071b1a;
+      --bg-accent: #0b2926;
+      --surface: rgba(15, 42, 39, .88);
+      --surface-solid: #102b28;
+      --surface-muted: #153531;
+      --text: #e9f7f2;
+      --muted: #9fb8b2;
+      --line: #294c47;
+      --brand: #42cbb4;
+      --brand-strong: #7be4d3;
+      --brand-soft: #163f39;
+      --blue: #78aee7;
+      --shadow: 0 20px 55px rgba(0, 0, 0, .26);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 0 0, rgba(68, 185, 143, .22), transparent 30rem),
+        radial-gradient(circle at 100% 8%, rgba(95, 151, 215, .17), transparent 28rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      line-height: 1.55;
+      transition: background .25s, color .25s;
+    }
+
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    .app-shell { width: min(1220px, calc(100% - 32px)); margin: 0 auto; }
+    .topbar {
+      position: sticky;
+      top: 12px;
+      z-index: 20;
+      margin: 16px auto 0;
+      padding: 12px 14px 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: color-mix(in srgb, var(--surface-solid) 80%, transparent);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 12px 36px rgba(15, 58, 51, .09);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 850; letter-spacing: -.02em; }
+    .brand-mark {
+      width: 38px; height: 38px; display: grid; place-items: center;
+      border-radius: 13px; color: white;
+      background: linear-gradient(135deg, var(--brand), #36a889);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);
+    }
+    .brand-mark svg { width: 23px; height: 23px; }
+    .brand small { display: block; color: var(--muted); font-size: 11px; font-weight: 650; letter-spacing: .08em; }
+    .top-actions { display: flex; align-items: center; gap: 9px; }
+    .nav-link { text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 700; padding: 9px 11px; border-radius: 12px; }
+    .nav-link:hover { color: var(--brand-strong); background: var(--brand-soft); }
+    .icon-button {
+      width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 13px;
+      background: var(--surface-solid); color: var(--text); display: grid; place-items: center;
+    }
+    .icon-button:hover { transform: translateY(-1px); border-color: var(--brand); }
+
+    .hero { padding: 68px 4px 34px; display: grid; grid-template-columns: 1.15fr .85fr; gap: 34px; align-items: center; }
+    .eyebrow {
+      display: inline-flex; gap: 8px; align-items: center; padding: 7px 11px; border-radius: 999px;
+      background: var(--brand-soft); color: var(--brand-strong); font-size: 12px; font-weight: 800; letter-spacing: .04em;
+    }
+    .eyebrow::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 5px color-mix(in srgb, var(--brand) 15%, transparent); }
+    h1 { font-size: clamp(42px, 7vw, 75px); line-height: .98; letter-spacing: -.065em; margin: 20px 0 18px; max-width: 820px; }
+    h1 span { color: var(--brand); }
+    .hero-copy { font-size: clamp(16px, 2vw, 20px); color: var(--muted); max-width: 720px; margin: 0 0 25px; }
+    .hero-points { display: flex; flex-wrap: wrap; gap: 10px; }
+    .hero-points span { padding: 8px 11px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 13px; font-weight: 700; }
+    .hero-visual {
+      min-height: 290px; padding: 26px; border-radius: 30px;
+      color: #eafff7; background: linear-gradient(145deg, #073b35, #0c6a5a 72%, #178b70);
+      box-shadow: var(--shadow); position: relative; overflow: hidden;
+    }
+    .hero-visual::after { content: ""; position: absolute; width: 250px; height: 250px; border: 1px solid rgba(255,255,255,.18); border-radius: 50%; right: -85px; top: -95px; box-shadow: 0 0 0 35px rgba(255,255,255,.03), 0 0 0 70px rgba(255,255,255,.025); }
+    .live-row { display: flex; justify-content: space-between; gap: 20px; align-items: start; position: relative; z-index: 1; }
+    .live-label { font-size: 12px; color: #a9dacf; text-transform: uppercase; letter-spacing: .14em; font-weight: 800; }
+    .live-value { font-size: 62px; line-height: 1; font-weight: 850; letter-spacing: -.06em; margin-top: 8px; }
+    .live-value small { font-size: 17px; letter-spacing: 0; font-weight: 650; color: #b9e2d9; }
+    .pulse { width: 12px; height: 12px; border-radius: 50%; background: #76efbe; box-shadow: 0 0 0 8px rgba(118,239,190,.13); margin-top: 6px; animation: pulse 2s infinite; }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 13px rgba(118,239,190,0); } }
+    .mini-bars { height: 94px; display: flex; gap: 7px; align-items: end; margin: 29px 0 18px; position: relative; z-index: 1; }
+    .mini-bars i { flex: 1; border-radius: 6px 6px 2px 2px; background: linear-gradient(#7de8c5, rgba(125,232,197,.28)); opacity: .95; }
+    .mini-footer { display: flex; justify-content: space-between; color: #c9e7e0; font-size: 13px; position: relative; z-index: 1; }
+
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin: 38px 0 18px; }
+    .section-head h2 { margin: 0; font-size: clamp(27px, 4vw, 38px); letter-spacing: -.04em; }
+    .section-head p { margin: 5px 0 0; color: var(--muted); }
+    .step-label { color: var(--brand); font-size: 12px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+
+    .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: stretch; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(12px); }
+    .form-card, .result-card { padding: 24px; }
+    .card-title { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 18px; }
+    .card-title h3 { font-size: 21px; margin: 0; letter-spacing: -.025em; }
+    .card-title span { color: var(--muted); font-size: 12px; }
+    .scenario-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
+    .scenario-btn { border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: var(--surface-solid); padding: 8px 12px; font-size: 13px; font-weight: 750; transition: .2s; }
+    .scenario-btn:hover, .scenario-btn.active { border-color: var(--brand); color: var(--brand-strong); background: var(--brand-soft); transform: translateY(-1px); }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .field { display: grid; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 13px; font-weight: 800; color: var(--text); }
+    .input-wrap { position: relative; }
+    input, textarea {
+      width: 100%; border: 1px solid var(--line); border-radius: 13px; padding: 12px 13px;
+      background: var(--surface-solid); color: var(--text); outline: none; transition: border-color .2s, box-shadow .2s;
+    }
+    input[type="number"] { padding-right: 64px; }
+    textarea { resize: vertical; min-height: 74px; }
+    input:focus, textarea:focus { border-color: var(--brand); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 15%, transparent); }
+    .unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 11px; font-weight: 800; pointer-events: none; }
+    .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .primary, .secondary, .ghost {
+      border-radius: 13px; padding: 11px 16px; font-weight: 800; border: 1px solid transparent; transition: .2s;
+    }
+    .primary { background: var(--brand); color: white; flex: 1; box-shadow: 0 8px 20px color-mix(in srgb, var(--brand) 22%, transparent); }
+    .primary:hover { background: var(--brand-strong); transform: translateY(-1px); }
+    .secondary { background: var(--surface-solid); color: var(--text); border-color: var(--line); }
+    .secondary:hover { border-color: var(--brand); color: var(--brand-strong); }
+    .ghost { padding: 8px 11px; background: transparent; color: var(--muted); border-color: var(--line); font-size: 13px; }
+    .ghost:hover { color: var(--brand-strong); border-color: var(--brand); }
+
+    .result-card { background: linear-gradient(155deg, var(--surface), color-mix(in srgb, var(--brand-soft) 50%, var(--surface))); }
+    .result-top { display: grid; grid-template-columns: 190px 1fr; gap: 22px; align-items: center; }
+    .gauge {
+      --score: 18; --gauge-color: var(--good);
+      width: 180px; aspect-ratio: 1; border-radius: 50%; margin: 4px auto; display: grid; place-items: center; position: relative;
+      background: conic-gradient(var(--gauge-color) calc(var(--score) * 1%), var(--line) 0);
+      transform: rotate(-90deg);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .gauge::before { content: ""; width: 142px; aspect-ratio: 1; border-radius: 50%; background: var(--surface-solid); box-shadow: inset 0 0 0 1px var(--line); }
+    .gauge-content { position: absolute; transform: rotate(90deg); text-align: center; }
+    .score-number { display: block; font-size: 47px; font-weight: 900; letter-spacing: -.06em; line-height: 1; }
+    .score-label { display: block; font-size: 11px; color: var(--muted); font-weight: 800; letter-spacing: .08em; margin-top: 7px; }
+    .status-pill { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 7px 11px; background: var(--brand-soft); color: var(--brand-strong); font-size: 13px; font-weight: 850; }
+    .status-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .result-summary h4 { font-size: 25px; margin: 13px 0 8px; letter-spacing: -.035em; }
+    .result-summary p { color: var(--muted); margin: 0; font-size: 14px; }
+    .cause-box { margin-top: 22px; padding: 16px; background: var(--surface-solid); border: 1px solid var(--line); border-radius: 16px; }
+    .cause-label { color: var(--muted); font-size: 11px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+    .cause-value { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-top: 6px; }
+    .cause-value strong { font-size: 18px; }
+    .cause-value span { color: var(--brand-strong); font-weight: 850; }
+    .recommendations { margin: 20px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+    .recommendations li { display: grid; grid-template-columns: 24px 1fr; gap: 9px; align-items: start; color: var(--muted); font-size: 14px; }
+    .recommendations li::before { content: attr(data-index); width: 22px; height: 22px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-strong); display: grid; place-items: center; font-size: 11px; font-weight: 900; }
+    .quality-note { margin-top: 18px; padding: 12px 13px; border-radius: 13px; background: color-mix(in srgb, var(--watch) 11%, var(--surface-solid)); border: 1px solid color-mix(in srgb, var(--watch) 35%, var(--line)); color: var(--text); font-size: 13px; display: none; }
+    .quality-note.show { display: block; }
+
+    .metric-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 11px; margin-top: 18px; }
+    .metric { border-radius: 15px; padding: 13px; background: var(--surface-solid); border: 1px solid var(--line); }
+    .metric span { display: block; color: var(--muted); font-size: 11px; font-weight: 750; }
+    .metric strong { display: block; font-size: 19px; margin-top: 3px; letter-spacing: -.025em; }
+
+    .history-card { padding: 24px; margin-bottom: 45px; }
+    .history-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chart-wrap { position: relative; min-height: 245px; border-radius: 18px; background: var(--surface-muted); border: 1px solid var(--line); padding: 12px; }
+    canvas { display: block; width: 100%; height: 220px; }
+    .empty-chart { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); text-align: center; padding: 30px; font-size: 14px; pointer-events: none; }
+    .table-wrap { overflow-x: auto; margin-top: 16px; border: 1px solid var(--line); border-radius: 17px; }
+    table { width: 100%; border-collapse: collapse; min-width: 770px; font-size: 13px; }
+    th { color: var(--muted); text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; background: var(--surface-muted); }
+    th, td { padding: 12px 13px; border-bottom: 1px solid var(--line); }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: color-mix(in srgb, var(--brand-soft) 35%, transparent); }
+    .score-chip { display: inline-flex; min-width: 48px; justify-content: center; padding: 4px 8px; border-radius: 999px; font-weight: 850; color: white; }
+    .delete-row { border: 0; color: var(--danger); background: transparent; font-weight: 800; padding: 5px; }
+    .empty-row { color: var(--muted); text-align: center; padding: 28px; }
+
+    .how-it-works { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 55px; }
+    .info-card { padding: 21px; }
+    .info-number { color: var(--brand); font-size: 12px; font-weight: 900; letter-spacing: .1em; }
+    .info-card h3 { margin: 10px 0 7px; font-size: 18px; }
+    .info-card p { color: var(--muted); margin: 0; font-size: 14px; }
+    footer { padding: 24px 0 38px; border-top: 1px solid var(--line); color: var(--muted); display: flex; justify-content: space-between; gap: 20px; font-size: 12px; }
+    .toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; padding: 11px 15px; border-radius: 13px; background: #133f39; color: white; font-weight: 750; font-size: 13px; box-shadow: 0 16px 40px rgba(0,0,0,.2); transition: .25s; z-index: 50; }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    @media (max-width: 930px) {
+      .hero, .workspace { grid-template-columns: 1fr; }
+      .hero { padding-top: 48px; }
+      .hero-visual { min-height: 260px; }
+      .nav-link { display: none; }
+    }
+    @media (max-width: 640px) {
+      .app-shell { width: min(100% - 20px, 1220px); }
+      .topbar { top: 7px; margin-top: 8px; }
+      .brand small { display: none; }
+      .hero { padding-top: 40px; }
+      h1 { font-size: 46px; }
+      .form-card, .result-card, .history-card { padding: 18px; }
+      .field-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .result-top { grid-template-columns: 1fr; text-align: center; }
+      .cause-value { align-items: start; }
+      .metric-strip { grid-template-columns: 1fr 1fr; }
+      .section-head { align-items: start; flex-direction: column; }
+      .how-it-works { grid-template-columns: 1fr; }
+      footer { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <header class="topbar app-shell">
+    <div class="brand" aria-label="AirScope 首頁">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 14.5c3.2-5.2 6.4-7.8 9.7-7.8 2.6 0 4.7 1.4 6.3 4.3-3.2 5.2-6.4 7.8-9.7 7.8-2.6 0-4.7-1.4-6.3-4.3Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12.7" r="2.1" fill="currentColor"/></svg>
+      </span>
+      <span>AirScope<small>ENVIRONMENT CHECK</small></span>
+    </div>
+    <nav class="top-actions" aria-label="頁面導覽">
+      <a class="nav-link" href="#check">開始判讀</a>
+      <a class="nav-link" href="#history">巡檢紀錄</a>
+      <button class="icon-button" id="themeToggle" type="button" aria-label="切換深色模式" title="切換深色模式">
+        <svg id="themeIcon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a9 9 0 1 0 9 9c0-.5 0-1-.1-1.4A7 7 0 0 1 12 3Z"/></svg>
+      </button>
+    </nav>
+  </header>
+
+  <main class="app-shell">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">環工系的日常工具</span>
+        <h1>把空氣數字，變成<span>下一步行動</span>。</h1>
+        <p class="hero-copy">輸入 PM2.5、CO₂、TVOC 與濕度，立即取得風險分數、可能主因與改善建議，還能保存巡檢紀錄並觀察趨勢。</p>
+        <div class="hero-points" aria-label="功能特色">
+          <span>即時計算</span><span>情境模擬</span><span>本機保存</span><span>趨勢圖</span><span>CSV 匯出</span>
+        </div>
+      </div>
+      <aside class="hero-visual" aria-label="AirScope 示意資訊卡">
+        <div class="live-row"><div><div class="live-label">Current environment score</div><div class="live-value">18<small>/100</small></div></div><span class="pulse" aria-hidden="true"></span></div>
+        <div class="mini-bars" aria-hidden="true"><i style="height:32%"></i><i style="height:47%"></i><i style="height:42%"></i><i style="height:64%"></i><i style="height:58%"></i><i style="height:75%"></i><i style="height:54%"></i><i style="height:38%"></i><i style="height:45%"></i><i style="height:30%"></i></div>
+        <div class="mini-footer"><span>教室情境 · 即時預覽</span><strong>空氣良好</strong></div>
+      </aside>
+    </section>
+
+    <section id="check" aria-labelledby="checkTitle">
+      <div class="section-head">
+        <div><span class="step-label">01 · Check</span><h2 id="checkTitle">建立一次巡檢</h2><p>可直接輸入數值，也可以先套用情境範例。</p></div>
+      </div>
+
+      <div class="workspace">
+        <form class="card form-card" id="airForm">
+          <div class="card-title"><h3>環境輸入</h3><span>所有資料只保存在這台裝置</span></div>
+          <div class="scenario-row" aria-label="快速情境">
+            <button class="scenario-btn active" type="button" data-scenario="classroom">安靜教室</button>
+            <button class="scenario-btn" type="button" data-scenario="construction">施工揚塵</button>
+            <button class="scenario-btn" type="button" data-scenario="lab">實驗室溶劑</button>
+            <button class="scenario-btn" type="button" data-scenario="crowded">擁擠會議室</button>
+          </div>
+          <div class="field-grid">
+            <div class="field full"><label for="location">巡檢位置</label><input id="location" name="location" maxlength="40" value="環工館 301 教室" required></div>
+            <div class="field"><label for="pm25">PM2.5</label><div class="input-wrap"><input id="pm25" name="pm25" type="number" min="0" max="999" step="0.1" value="12" required><span class="unit">µg/m³</span></div></div>
+            <div class="field"><label for="co2">CO₂</label><div class="input-wrap"><input id="co2" name="co2" type="number" min="250" max="9999" step="1" value="620" required><span class="unit">ppm</span></div></div>
+            <div class="field"><label for="tvoc">TVOC</label><div class="input-wrap"><input id="tvoc" name="tvoc" type="number" min="0" max="9999" step="1" value="95" required><span class="unit">ppb</span></div></div>
+            <div class="field"><label for="humidity">相對濕度</label><div class="input-wrap"><input id="humidity" name="humidity" type="number" min="0" max="100" step="1" value="56" required><span class="unit">%</span></div></div>
+            <div class="field full"><label for="note">現場觀察（選填）</label><textarea id="note" name="note" maxlength="120" placeholder="例如：西側窗戶開啟、聞到溶劑味、附近正在施工……">上課前，窗戶半開。</textarea></div>
+          </div>
+          <div class="form-actions"><button class="primary" type="submit">儲存這次巡檢</button><button class="secondary" id="resetBtn" type="button">重設</button></div>
+        </form>
+
+        <article class="card result-card" aria-live="polite">
+          <div class="card-title"><h3>即時判讀</h3><span id="updatedAt">輸入後自動更新</span></div>
+          <div class="result-top">
+            <div class="gauge" id="gauge"><div class="gauge-content"><span class="score-number" id="scoreNumber">18</span><span class="score-label">RISK SCORE</span></div></div>
+            <div class="result-summary"><span class="status-pill" id="statusPill">良好</span><h4 id="summaryTitle">目前空氣狀況穩定</h4><p id="summaryText">各項指標皆在本工具設定的低風險範圍，可維持一般通風並持續觀察。</p></div>
+          </div>
+          <div class="cause-box"><span class="cause-label">最需要留意</span><div class="cause-value"><strong id="causeName">PM2.5 懸浮微粒</strong><span id="causePercent">45% 權重</span></div></div>
+          <ul class="recommendations" id="recommendations"><li data-index="1">維持一般通風，避免室內污染物累積。</li><li data-index="2">人員增加或活動一段時間後，再量測一次 CO₂。</li><li data-index="3">將本次數值存入紀錄，作為此位置的平常基準。</li></ul>
+          <div class="quality-note" id="qualityNote"></div>
+          <div class="metric-strip">
+            <div class="metric"><span>PM2.5 子分數</span><strong id="pmScore">16</strong></div>
+            <div class="metric"><span>CO₂ 子分數</span><strong id="co2Score">14</strong></div>
+            <div class="metric"><span>TVOC 子分數</span><strong id="tvocScore">11</strong></div>
+            <div class="metric"><span>濕度子分數</span><strong id="humidityScore">0</strong></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="history" aria-labelledby="historyTitle">
+      <div class="section-head">
+        <div><span class="step-label">02 · Track</span><h2 id="historyTitle">巡檢紀錄與趨勢</h2><p>記錄保存在瀏覽器的 localStorage，重新整理後仍會存在。</p></div>
+        <div class="history-actions"><button class="ghost" id="exportBtn" type="button">匯出 CSV</button><button class="ghost" id="clearBtn" type="button">清除全部</button></div>
+      </div>
+      <div class="card history-card">
+        <div class="chart-wrap"><canvas id="trendChart" width="1100" height="220" aria-label="環境風險分數趨勢圖"></canvas><div class="empty-chart" id="emptyChart">尚未儲存巡檢資料。<br>試著套用不同情境並按下「儲存這次巡檢」。</div></div>
+        <div class="table-wrap">
+          <table><thead><tr><th>時間</th><th>位置</th><th>PM2.5</th><th>CO₂</th><th>TVOC</th><th>風險</th><th>狀態</th><th>操作</th></tr></thead><tbody id="historyBody"><tr><td class="empty-row" colspan="8">目前沒有巡檢紀錄</td></tr></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="logicTitle">
+      <div class="section-head"><div><span class="step-label">03 · Explain</span><h2 id="logicTitle">這個 App 怎麼判讀？</h2><p>計算規則透明，使用者可以理解結果從哪裡來。</p></div></div>
+      <div class="how-it-works">
+        <article class="card info-card"><span class="info-number">INPUT</span><h3>四種現場數值</h3><p>接收 PM2.5、CO₂、TVOC 與相對濕度，並允許填寫位置和現場觀察。</p></article>
+        <article class="card info-card"><span class="info-number">PROCESS</span><h3>加權風險分數</h3><p>依環境指標分級後，以 45%、30%、20%、5% 權重組合成 0～100 分。</p></article>
+        <article class="card info-card"><span class="info-number">OUTPUT</span><h3>可執行的下一步</h3><p>輸出風險等級、主要原因、資料品質提醒及對應改善建議，不把分數當成法規判定。</p></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-shell"><span>AirScope · Vibe Coding 課程作品</span><span>本工具供學習與初步巡檢，不取代標準儀器、法規判定或專業診斷。</span></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const STORAGE_KEY = "airscope-records-v1";
+    const THEME_KEY = "airscope-theme";
+
+    const scenarios = {
+      classroom: { location: "環工館 301 教室", pm25: 12, co2: 620, tvoc: 95, humidity: 56, note: "上課前，窗戶半開。" },
+      construction: { location: "校園西側施工區", pm25: 86, co2: 610, tvoc: 135, humidity: 61, note: "有明顯揚塵，風由施工區吹向走道。" },
+      lab: { location: "環工實驗室", pm25: 18, co2: 880, tvoc: 1280, humidity: 58, note: "操作有機溶劑後聞到明顯氣味。" },
+      crowded: { location: "社團會議室", pm25: 24, co2: 1860, tvoc: 330, humidity: 72, note: "約 20 人開會，門窗關閉。" }
+    };
+
+    const el = id => document.getElementById(id);
+    const form = el("airForm");
+    const fields = ["location", "pm25", "co2", "tvoc", "humidity", "note"];
+    let records = readRecords();
+    let currentResult = null;
+    let toastTimer;
+
+    function clamp(value, min = 0, max = 100) { return Math.min(max, Math.max(min, value)); }
+    function segment(value, points) {
+      if (value <= points[0][0]) return points[0][1] * value / Math.max(points[0][0], 1);
+      for (let i = 1; i < points.length; i++) {
+        const [x2, y2] = points[i], [x1, y1] = points[i - 1];
+        if (value <= x2) return y1 + (value - x1) * (y2 - y1) / (x2 - x1);
+      }
+      return 100;
+    }
+
+    function scoreInputs(pm25, co2, tvoc, humidity) {
+      const pm = segment(pm25, [[15, 20], [35, 45], [54, 62], [150, 88], [250, 100]]);
+      const carbon = segment(Math.max(0, co2 - 350), [[450, 18], [650, 38], [1150, 70], [2150, 100]]);
+      const volatile = segment(tvoc, [[200, 18], [500, 42], [1000, 72], [2000, 100]]);
+      const humidityDistance = humidity < 40 ? 40 - humidity : humidity > 70 ? humidity - 70 : 0;
+      const moisture = clamp(humidityDistance * 4);
+      const total = Math.round(pm * .45 + carbon * .30 + volatile * .20 + moisture * .05);
+      return { pm: Math.round(pm), carbon: Math.round(carbon), volatile: Math.round(volatile), moisture: Math.round(moisture), total };
+    }
+
+    function getStatus(score) {
+      if (score < 25) return { label: "良好", color: "var(--good)", title: "目前空氣狀況穩定", text: "各項指標皆在本工具設定的低風險範圍，可維持一般通風並持續觀察。" };
+      if (score < 50) return { label: "留意", color: "var(--watch)", title: "部分指標開始升高", text: "建議查看主要影響項目，先採取簡單改善措施，並在一段時間後複測。" };
+      if (score < 75) return { label: "警示", color: "var(--warn)", title: "環境品質明顯下降", text: "建議立即處理主要污染來源、增加安全距離，並確認改善後的數值變化。" };
+      return { label: "高風險", color: "var(--danger)", title: "需要立即處理與確認", text: "請先降低暴露、離開污染來源並通知管理人員，再以合格儀器進一步確認。" };
+    }
+
+    function recommendationsFor(values, scores) {
+      const list = [];
+      if (scores.pm >= 45) list.push("減少揚塵或燃燒來源；若污染由室外進入，先關閉朝向來源的門窗並複測。");
+      if (scores.carbon >= 45) list.push("增加新鮮空氣交換或降低室內人數，15 分鐘後重新量測 CO₂。");
+      if (scores.volatile >= 45) list.push("停止可能的溶劑或清潔劑操作、遠離氣味來源並加強局部排氣。");
+      if (scores.moisture >= 35) list.push("調整除濕或加濕設備，並留意濕度是否干擾懸浮微粒感測值。");
+      if (list.length === 0) list.push("維持一般通風，避免室內污染物累積。", "人員增加或活動一段時間後，再量測一次 CO₂。", "將本次數值存入紀錄，作為此位置的平常基準。");
+      if (list.length === 1) list.push("確認改善前後的數值差異，不要只依單次測量下結論。", "若數值持續升高，交由管理人員或環境工程人員進一步確認。");
+      if (list.length === 2) list.push("保留時間、位置及現場觀察，方便後續追查污染來源。");
+      return list.slice(0, 3);
+    }
+
+    function causeFor(scores) {
+      const causes = [
+        { key: "pm", name: "PM2.5 懸浮微粒", weight: "45% 權重", value: scores.pm * .45 },
+        { key: "carbon", name: "CO₂ 通風指標", weight: "30% 權重", value: scores.carbon * .30 },
+        { key: "volatile", name: "TVOC 揮發性物質", weight: "20% 權重", value: scores.volatile * .20 },
+        { key: "moisture", name: "相對濕度", weight: "5% 權重", value: scores.moisture * .05 }
+      ];
+      return causes.sort((a, b) => b.value - a.value)[0];
+    }
+
+    function readValues() {
+      const values = {
+        location: el("location").value.trim(), note: el("note").value.trim(),
+        pm25: Number(el("pm25").value), co2: Number(el("co2").value),
+        tvoc: Number(el("tvoc").value), humidity: Number(el("humidity").value)
+      };
+      const valid = values.location && Number.isFinite(values.pm25) && values.pm25 >= 0 && Number.isFinite(values.co2) && values.co2 >= 250 && Number.isFinite(values.tvoc) && values.tvoc >= 0 && Number.isFinite(values.humidity) && values.humidity >= 0 && values.humidity <= 100;
+      return { values, valid };
+    }
+
+    function evaluate(showValidation = false) {
+      const { values, valid } = readValues();
+      if (!valid) {
+        if (showValidation) form.reportValidity();
+        return null;
+      }
+      const scores = scoreInputs(values.pm25, values.co2, values.tvoc, values.humidity);
+      const status = getStatus(scores.total);
+      const cause = causeFor(scores);
+      const recommendations = recommendationsFor(values, scores);
+      let quality = "";
+      if (values.humidity >= 85 && values.pm25 >= 35) quality = "資料品質提醒：高濕度可能使部分低成本 PM 感測器讀值偏高，建議除濕後複測或以標準儀器確認。";
+      if (values.co2 > 5000) quality = "資料品質提醒：CO₂ 數值非常高，請先離開現場並確認感測器量程與校正狀態。";
+      currentResult = { values, scores, status, cause, recommendations, quality };
+      renderResult(currentResult);
+      return currentResult;
+    }
+
+    function renderResult(result) {
+      const { values, scores, status, cause, recommendations, quality } = result;
+      const gauge = el("gauge");
+      gauge.style.setProperty("--score", scores.total);
+      gauge.style.setProperty("--gauge-color", status.color);
+      el("scoreNumber").textContent = scores.total;
+      el("statusPill").textContent = status.label;
+      el("statusPill").style.color = status.color;
+      el("summaryTitle").textContent = status.title;
+      el("summaryText").textContent = status.text;
+      el("causeName").textContent = cause.name;
+      el("causePercent").textContent = cause.weight;
+      el("pmScore").textContent = scores.pm;
+      el("co2Score").textContent = scores.carbon;
+      el("tvocScore").textContent = scores.volatile;
+      el("humidityScore").textContent = scores.moisture;
+      el("recommendations").innerHTML = recommendations.map((item, index) => `<li data-index="${index + 1}">${escapeHTML(item)}</li>`).join("");
+      const note = el("qualityNote");
+      note.textContent = quality;
+      note.classList.toggle("show", Boolean(quality));
+      el("updatedAt").textContent = `${values.location} · 即時預覽`;
+    }
+
+    function applyScenario(name) {
+      const scenario = scenarios[name];
+      Object.entries(scenario).forEach(([key, value]) => { el(key).value = value; });
+      document.querySelectorAll(".scenario-btn").forEach(button => button.classList.toggle("active", button.dataset.scenario === name));
+      evaluate();
+    }
+
+    function readRecords() {
+      try { const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY)); return Array.isArray(parsed) ? parsed : []; }
+      catch { return []; }
+    }
+    function persistRecords() { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+
+    function saveRecord(result) {
+      records.unshift({
+        id: Date.now(), createdAt: new Date().toISOString(),
+        ...result.values, score: result.scores.total, status: result.status.label, color: colorToken(result.status.label)
+      });
+      records = records.slice(0, 30);
+      persistRecords(); renderHistory(); showToast("巡檢紀錄已儲存");
+    }
+
+    function colorToken(status) { return status === "良好" ? "#198754" : status === "留意" ? "#c28a00" : status === "警示" ? "#dc6b20" : "#c83c4d"; }
+    function formatTime(iso) { return new Intl.DateTimeFormat("zh-TW", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso)); }
+    function escapeHTML(value) { const div = document.createElement("div"); div.textContent = String(value); return div.innerHTML; }
+
+    function renderHistory() {
+      const body = el("historyBody");
+      if (!records.length) body.innerHTML = '<tr><td class="empty-row" colspan="8">目前沒有巡檢紀錄</td></tr>';
+      else body.innerHTML = records.map(record => `<tr>
+        <td>${formatTime(record.createdAt)}</td><td>${escapeHTML(record.location)}</td><td>${record.pm25}</td><td>${record.co2}</td><td>${record.tvoc}</td>
+        <td><span class="score-chip" style="background:${record.color}">${record.score}</span></td><td>${record.status}</td>
+        <td><button class="delete-row" type="button" data-delete="${record.id}" aria-label="刪除 ${escapeHTML(record.location)} 的紀錄">刪除</button></td></tr>`).join("");
+      el("emptyChart").style.display = records.length ? "none" : "grid";
+      drawChart();
+    }
+
+    function drawChart() {
+      const canvas = el("trendChart");
+      const rect = canvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      const width = Math.max(600, Math.round(rect.width || 1000)), height = 220;
+      canvas.width = width * ratio; canvas.height = height * ratio;
+      const ctx = canvas.getContext("2d"); ctx.scale(ratio, ratio); ctx.clearRect(0, 0, width, height);
+      if (!records.length) return;
+      const styles = getComputedStyle(document.documentElement);
+      const line = styles.getPropertyValue("--line").trim();
+      const muted = styles.getPropertyValue("--muted").trim();
+      const brand = styles.getPropertyValue("--brand").trim();
+      const pad = { l: 42, r: 18, t: 20, b: 36 }, plotW = width - 60, plotH = height - 56;
+      ctx.font = "11px system-ui"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      [0, 25, 50, 75, 100].forEach(value => {
+        const y = pad.t + plotH - value / 100 * plotH;
+        ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(width - pad.r, y); ctx.stroke();
+        ctx.fillStyle = muted; ctx.fillText(value, pad.l - 8, y);
+      });
+      const data = [...records].reverse();
+      const xFor = index => data.length === 1 ? pad.l + plotW / 2 : pad.l + index / (data.length - 1) * plotW;
+      const yFor = score => pad.t + plotH - score / 100 * plotH;
+      const gradient = ctx.createLinearGradient(0, pad.t, 0, pad.t + plotH); gradient.addColorStop(0, brand); gradient.addColorStop(1, "rgba(54,168,137,.08)");
+      ctx.beginPath(); data.forEach((record, index) => { const x = xFor(index), y = yFor(record.score); index ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+      ctx.lineTo(xFor(data.length - 1), pad.t + plotH); ctx.lineTo(xFor(0), pad.t + plotH); ctx.closePath(); ctx.fillStyle = gradient; ctx.fill();
+      ctx.beginPath(); data.forEach((record, index) => { const x = xFor(index), y = yFor(record.score); index ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+      ctx.strokeStyle = brand; ctx.lineWidth = 3; ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.stroke();
+      data.forEach((record, index) => { const x = xFor(index), y = yFor(record.score); ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI * 2); ctx.fillStyle = record.color; ctx.fill(); ctx.strokeStyle = styles.getPropertyValue("--surface-solid").trim(); ctx.lineWidth = 2; ctx.stroke(); });
+      ctx.textAlign = "center"; ctx.textBaseline = "top"; ctx.fillStyle = muted;
+      const step = Math.max(1, Math.ceil(data.length / 6)); data.forEach((record, index) => { if (index % step === 0 || index === data.length - 1) ctx.fillText(formatTime(record.createdAt), xFor(index), height - 24); });
+    }
+
+    function exportCSV() {
+      if (!records.length) return showToast("目前沒有可匯出的紀錄");
+      const headers = ["時間", "位置", "PM2.5(µg/m³)", "CO2(ppm)", "TVOC(ppb)", "濕度(%)", "風險分數", "狀態", "現場觀察"];
+      const quote = value => `"${String(value ?? "").replaceAll('"', '""')}"`;
+      const rows = records.map(record => [new Date(record.createdAt).toLocaleString("zh-TW"), record.location, record.pm25, record.co2, record.tvoc, record.humidity, record.score, record.status, record.note].map(quote).join(","));
+      const blob = new Blob(["\ufeff" + headers.map(quote).join(",") + "\n" + rows.join("\n")], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob), link = document.createElement("a");
+      link.href = url; link.download = `AirScope_${new Date().toISOString().slice(0,10)}.csv`; link.click(); URL.revokeObjectURL(url); showToast("CSV 已匯出");
+    }
+
+    function showToast(message) { const toast = el("toast"); toast.textContent = message; toast.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove("show"), 2200); }
+    function setTheme(theme) { document.documentElement.dataset.theme = theme; localStorage.setItem(THEME_KEY, theme); el("themeToggle").setAttribute("aria-label", theme === "dark" ? "切換亮色模式" : "切換深色模式"); drawChart(); }
+
+    form.addEventListener("input", () => { document.querySelectorAll(".scenario-btn").forEach(button => button.classList.remove("active")); evaluate(); });
+    form.addEventListener("submit", event => { event.preventDefault(); const result = evaluate(true); if (result) saveRecord(result); });
+    document.querySelectorAll(".scenario-btn").forEach(button => button.addEventListener("click", () => applyScenario(button.dataset.scenario)));
+    el("resetBtn").addEventListener("click", () => applyScenario("classroom"));
+    el("historyBody").addEventListener("click", event => { const id = Number(event.target.dataset.delete); if (!id) return; records = records.filter(record => record.id !== id); persistRecords(); renderHistory(); showToast("已刪除一筆紀錄"); });
+    el("exportBtn").addEventListener("click", exportCSV);
+    el("clearBtn").addEventListener("click", () => { if (!records.length) return showToast("目前沒有紀錄"); if (confirm("確定要清除所有巡檢紀錄嗎？此操作無法復原。")) { records = []; persistRecords(); renderHistory(); showToast("全部紀錄已清除"); } });
+    el("themeToggle").addEventListener("click", () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
+    window.addEventListener("resize", () => requestAnimationFrame(drawChart));
+
+    const preferredTheme = localStorage.getItem(THEME_KEY) || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    setTheme(preferredTheme); evaluate(); renderHistory();
+  </script>
+</body>
+</html>
