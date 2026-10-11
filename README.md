@@ -2,6 +2,11 @@
 
 一個以環境工程學習情境設計的互動式單頁 Web App。輸入 PM2.5、CO₂、TVOC 與相對濕度後，可取得環境風險分數、主要影響項目與改善建議，並保存歷史紀錄、繪製趨勢圖及匯出 CSV。
 
+## 作品連結
+
+- 公開網站：https://hungcs9326.github.io/airscope-webapp/
+- GitHub 原始碼：https://github.com/hungcs9326/airscope-webapp
+
 ## 使用方式
 
 直接開啟 `index.html`，或使用本專案的 GitHub Pages 網址。
