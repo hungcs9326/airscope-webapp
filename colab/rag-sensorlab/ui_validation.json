@@ -1,0 +1,10 @@
+{
+  "local_gradio_http_endpoints_tested": true,
+  "submit_and_send_buttons_tested": true,
+  "structured_message_roundtrip_and_followup_passed": true,
+  "clear_chat_passed": true,
+  "first_turn_pdf_page_96_retrieved": true,
+  "live_llm_test_performed": false,
+  "browser_screenshot_captured": false,
+  "note": "Real Gradio HTTP interaction in explicit retrieval-preview mode; not a live Groq conversation or browser screenshot."
+}

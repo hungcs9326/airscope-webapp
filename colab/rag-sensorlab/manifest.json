@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "project": "AirScope SensorLab",
+  "source_title": "The Enhanced Air Sensor Guidebook",
+  "source_url": "https://cfpub.epa.gov/si/si_public_file_download.cfm?Lab=CEMM&p_download_id=545843",
+  "source_record_url": "https://cfpub.epa.gov/si/si_public_record_report.cfm?Lab=CEMM&dirEntryId=356426",
+  "source_edition": 2022,
+  "source_pdf_sha256": "a6b5ea68a2e4dd4b55674c2b2ff78dc209549fd23f3ae5371bc25ab0c70446e3",
+  "created_utc": "2026-10-30T23:56:56.569811+08:00",
+  "embedding_model": "intfloat/multilingual-e5-small",
+  "embedding_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+  "document_prefix": "passage: ",
+  "query_prefix": "query: ",
+  "normalized": true,
+  "metric": "inner_product_on_unit_vectors",
+  "pdf_pages": 195,
+  "chunks": 508,
+  "dimension": 384,
+  "chunk_size": 1100,
+  "chunk_overlap": 180,
+  "page_numbering": "1-based physical PDF page, not printed book page",
+  "extraction_limit": "PDF text only; figures are not OCR-transcribed.",
+  "packages": {
+    "faiss-cpu": "1.15.1",
+    "sentence-transformers": "5.7.0",
+    "langchain-community": "0.4.2",
+    "langchain-huggingface": "1.2.3",
+    "pypdf": "6.10.0"
+  },
+  "files": {
+    "faiss_db/index.faiss": {
+      "sha256": "3eb495520d68e1a73b6977dc9b93a6ae659f69596ca25282354a81fc42a66567",
+      "bytes": 780333
+    },
+    "faiss_db/documents.json": {
+      "sha256": "c4726ba077395b71fe7bd0f09eadc160f2b6e587f90447538dd68f567b10b3c9",
+      "bytes": 693073
+    },
+    "source_text.txt": {
+      "sha256": "84bfd08d3a2c33bc3d7cde8347a960969286f00f3b15f5da64d95f762124d7b3",
+      "bytes": 4443369
+    }
+  }
+}

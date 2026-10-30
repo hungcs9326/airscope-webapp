@@ -1,0 +1,26 @@
+{
+  "notebook_code_cells_syntax_valid": {
+    "RAG01_SensorLab.ipynb": 8,
+    "RAG02_SensorLab.ipynb": 12
+  },
+  "rag02_executed_cells": [
+    5,
+    7,
+    8,
+    10,
+    11,
+    13,
+    15,
+    17,
+    18,
+    20
+  ],
+  "public_zip_download_and_hash_verified": true,
+  "public_zip_url": "https://raw.githubusercontent.com/hungcs9326/airscope-webapp/f97a449dab62e057df39f414aef289b2d1750519/colab/rag-sensorlab/rag-data.zip",
+  "zip_sha256": "697fb25c46f4bcf37df15621a36bcae20752446cefb6256ba463f742e8a09468",
+  "faiss_vectors": 508,
+  "embedding_dimension": 384,
+  "real_retrieval_preview_completed": true,
+  "live_llm_test_performed": false,
+  "execution_note": "Local execution of generated notebook cells; installation already matched pinned packages. Colab UI and Groq API were not used."
+}

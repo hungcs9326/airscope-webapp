@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-30",
+  "source_pdf_pages": 195,
+  "real_faiss_vectors": 508,
+  "dimension": 384,
+  "zip_sha256": "697fb25c46f4bcf37df15621a36bcae20752446cefb6256ba463f742e8a09468",
+  "source_sha256": "a6b5ea68a2e4dd4b55674c2b2ff78dc209549fd23f3ae5371bc25ab0c70446e3",
+  "archive_reloaded_and_hashes_verified": true,
+  "vectors_normalized": true,
+  "retrieval_tests": [
+    {
+      "question": "濕度高時 PM2.5 感測器讀值變高，能直接判定污染變嚴重嗎？",
+      "pdf_pages": [
+        31,
+        96,
+        174,
+        96
+      ],
+      "scores": [
+        0.8445,
+        0.89,
+        0.8404,
+        0.8726
+      ],
+      "expected_concept_found": true
+    },
+    {
+      "question": "什麼是共置（collocation）？為什麼要把感測器和參考儀器放在一起？",
+      "pdf_pages": [
+        82,
+        81,
+        86,
+        84
+      ],
+      "scores": [
+        0.8378,
+        0.9191,
+        0.8316,
+        0.8315
+      ],
+      "expected_concept_found": true
+    },
+    {
+      "question": "如果要比較校門口和操場的空氣品質，開始量測前應先規劃哪些事？",
+      "pdf_pages": [
+        56,
+        75,
+        123,
+        55
+      ],
+      "scores": [
+        0.8332,
+        0.9203,
+        0.8311,
+        0.9184
+      ],
+      "expected_concept_found": true
+    },
+    {
+      "question": "Why can high relative humidity affect particle sensor measurements?",
+      "pdf_pages": [
+        67,
+        97,
+        175,
+        174
+      ],
+      "scores": [
+        0.8944,
+        0.8809,
+        0.8706,
+        0.8681
+      ],
+      "expected_concept_found": true
+    },
+    {
+      "question": "How should I maintain an air sensor?",
+      "pdf_pages": [
+        155,
+        93,
+        75,
+        6
+      ],
+      "scores": [
+        0.9097,
+        0.9069,
+        0.8941,
+        0.889
+      ],
+      "expected_concept_found": true
+    }
+  ],
+  "structured_history_and_followup_check": true,
+  "invalid_citation_rejected_in_mock_check": true,
+  "gradio_ui_configuration_valid": true,
+  "live_llm_test_performed": false,
+  "note": "LLM 協定測試使用明確標示的模擬；未使用學生金鑰，沒有把模擬回答當作 Gradio 作業成果。"
+}
